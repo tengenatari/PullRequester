@@ -47,7 +47,12 @@ def team_add(request):
         }, status=status.HTTP_201_CREATED)
 
     except ValidationError as e:
-        return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'error': {
+                'code': e.code if hasattr(e, 'code') else 'VALIDATION_ERROR',
+                'message': str(e)
+            }
+        }, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response({
             'error': {

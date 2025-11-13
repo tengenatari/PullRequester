@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
-from PullRequester.api.services import PullRequestService
-from PullRequester.api.serializers import PullRequestSerializer
+from ..services import PullRequestService
+from ..serializers import PullRequestSerializer
 
 
 @api_view(['POST'])
@@ -38,7 +38,12 @@ def pullrequest_create(request):
             }
         }, status=status.HTTP_404_NOT_FOUND)
     except ValidationError as e:
-        return Response(e.message_dict, status=status.HTTP_409_CONFLICT)
+        return Response({
+            'error': {
+                'code': e.code if hasattr(e, 'code') else 'VALIDATION_ERROR',
+                'message': str(e)
+            }
+        }, status=status.HTTP_409_CONFLICT)
     except Exception as e:
         return Response({
             'error': {
@@ -116,7 +121,12 @@ def pullrequest_reassign(request):
             }
         }, status=status.HTTP_404_NOT_FOUND)
     except ValidationError as e:
-        return Response(e.message_dict, status=status.HTTP_409_CONFLICT)
+        return Response({
+            'error': {
+                'code': e.code if hasattr(e, 'code') else 'VALIDATION_ERROR',
+                'message': str(e)
+            }
+        }, status=status.HTTP_409_CONFLICT)
     except Exception as e:
         return Response({
             'error': {

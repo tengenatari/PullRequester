@@ -24,18 +24,12 @@ class TeamSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(source='id')
     username = serializers.CharField()
-    team_name = serializers.SerializerMethodField()
+    team_name = serializers.CharField(source='team.name')
     is_active = serializers.BooleanField()
 
     class Meta:
         model = User
         fields = ['user_id', 'username', 'team_name', 'is_active']
-
-    @staticmethod
-    def get_team_name(obj):
-
-        team = obj.teams.first()
-        return team.name if team else None
 
 
 class PullRequestSerializer(serializers.ModelSerializer):
