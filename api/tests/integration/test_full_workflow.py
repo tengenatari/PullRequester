@@ -3,14 +3,14 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 
-class FullWorkflowE2ETest(APITestCase):
+class FullWorkflowIntegrationTest(APITestCase):
     """
     End-to-end
     """
 
     def test_complete_pr_workflow(self):
         """
-        E2E тест: полный workflow создания команды, PR, переназначения и мержа
+        Intergration тест: полный workflow создания команды, PR, переназначения и мержа
         """
         # Создаем команду через API
         team_data = {
@@ -99,7 +99,7 @@ class FullWorkflowE2ETest(APITestCase):
 
     def test_user_activation_workflow(self):
         """
-        E2E тест: workflow с деактивацией пользователя
+        Intergration тест: workflow с деактивацией пользователя
         """
         # Создаем команду
         team_data = {
@@ -152,7 +152,7 @@ class FullWorkflowE2ETest(APITestCase):
 
     def test_error_scenarios_workflow(self):
         """
-        E2E тест: различные сценарии ошибок
+        Intergration тест: различные сценарии ошибок
         """
 
         team_data = {
@@ -209,7 +209,7 @@ class FullWorkflowE2ETest(APITestCase):
 
     def test_edge_cases_workflow(self):
         """
-        E2E тест: граничные случаи
+        Intergration тест: граничные случаи
         """
         # Создаем команду с минимальным количеством пользователей
         team_data = {
@@ -257,14 +257,14 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(len(assigned_reviewers), 0)
 
 
-class MultiplePRE2ETest(APITestCase):
+class MultiplePRIntergrationTest(APITestCase):
     """
-    E2E тесты нескольких PR
+    Intergration тесты нескольких PR
     """
 
     def test_multiple_teams_and_prs(self):
         """
-        E2E тест: создание нескольких команд
+        Intergration тест: создание нескольких команд
         """
         # Создаем несколько команд
         teams_data = [
@@ -309,14 +309,14 @@ class MultiplePRE2ETest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class DataConsistencyE2ETest(APITestCase):
+class DataConsistencyIntergrationTest(APITestCase):
     """
-    E2E тесты целостности данных
+    Intergration тесты целостности данных
     """
 
     def test_data_consistency_after_operations(self):
         """
-        E2E тест: проверка целостности данных после серии операций
+        Intergration тест: проверка целостности данных после серии операций
         """
         team_data = {
             "team_name": "consistency-team",

@@ -13,4 +13,5 @@ urlpatterns = [
     path('pullRequest/reassign', pull_request_views.pullrequest_reassign, name='pr-reassign'),
     path('health', health_views.health_check, name='health-check'),
     path('statistic', statistic_view.stats_overview, name='statistic-view'),
+    path('team/bulkDeactivate', team_views.team_bulk_deactivate, name='team-bulk-deactivate'),
 ]

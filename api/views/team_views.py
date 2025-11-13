@@ -95,3 +95,40 @@ def team_get(request):
                 'message': 'Internal server error'
             }
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+def team_bulk_deactivate(request):
+    """POST /team/bulkDeactivate - Массовая деактивация пользователей команды"""
+    try:
+        team_name = request.data.get('team_name')
+        user_ids = request.data.get('user_ids')
+
+        if not team_name:
+            return Response({
+                'error': {
+                    'code': 'VALIDATION_ERROR',
+                    'message': 'team_name is required'
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        TeamService.bulk_deactivate_team_members(team_name, user_ids)
+
+        return Response({
+            'message': 'Users deactivated successfully'
+        })
+
+    except ObjectDoesNotExist as e:
+        return Response({
+            'error': {
+                'code': 'NOT_FOUND',
+                'message': str(e)
+            }
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': {
+                'code': 'SERVER_ERROR',
+                'message': 'Internal server error'
+            }
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

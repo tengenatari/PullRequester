@@ -64,6 +64,82 @@ class TeamService:
         except Team.DoesNotExist:
             raise Team.DoesNotExist(f"Team '{team_name}' not found")
 
+    @classmethod
+    @transaction.atomic
+    def bulk_deactivate_team_members(cls, team_name: str, user_ids: list = None):
+        """
+        Массовая деактивация пользователей команды с безопасной переназначаемостью открытых PR
+        """
+        try:
+            team = Team.objects.get(name=team_name)
+        except Team.DoesNotExist:
+            raise ObjectDoesNotExist(f"Team '{team_name}' not found")
+
+        # Определяем пользователей для деактивации
+        if user_ids:
+            users_to_deactivate = User.objects.filter(team=team, id__in=user_ids)
+        else:
+            users_to_deactivate = User.objects.filter(team=team)
+
+        users_to_deactivate = list(users_to_deactivate)
+
+        if not users_to_deactivate:
+            return
+
+        # Получаем все открытые PR где эти пользователи являются ревьюверами
+        open_prs = PullRequest.objects.filter(
+            status='OPEN',
+            reviewers__in=users_to_deactivate
+        ).distinct().prefetch_related('reviewers')
+
+        # Безопасная переназначаемость ревьюверов
+        cls._safely_reassign_reviewers(open_prs, users_to_deactivate, team)
+
+        # Деактивируем пользователей
+        User.objects.filter(
+            id__in=[user.id for user in users_to_deactivate]
+        ).update(is_active=False)
+
+    @classmethod
+    def _safely_reassign_reviewers(cls, open_prs: list, users_to_deactivate: list, team: Team):
+        """
+        Безопасная переназначаемость ревьюверов в открытых PR
+        """
+        # Получаем активных пользователей команды (кроме тех, кого деактивируем)
+        active_users = User.objects.filter(
+            team=team,
+            is_active=True
+        ).exclude(id__in=[user.id for user in users_to_deactivate])
+
+        for pr in open_prs:
+            # Получаем текущих ревьюверов которые будут деактивированы
+            deactivating_reviewers = [
+                user for user in users_to_deactivate
+                if pr.reviewers.filter(id=user.id).exists()
+            ]
+
+            if not deactivating_reviewers:
+                continue
+
+            # Доступные кандидаты для замены
+            available_candidates = active_users.exclude(
+                id=pr.author.id
+            ).exclude(
+                id__in=list(pr.reviewers.values_list('id', flat=True))
+            )
+
+            # Для каждого деактивируемого ревьювера ищем замену
+            for old_reviewer in deactivating_reviewers:
+                if available_candidates.exists():
+                    # Выбираем случайного кандидата
+                    new_reviewer = random.choice(list(available_candidates))
+
+                    # Переназначаем
+                    pr.reviewers.remove(old_reviewer)
+                    pr.reviewers.add(new_reviewer)
+
+                    # Убираем нового ревьювера из доступных кандидатов для этого PR
+                    available_candidates = available_candidates.exclude(id=new_reviewer.id)
 
 class UserService:
     """

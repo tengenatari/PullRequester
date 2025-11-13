@@ -10,7 +10,7 @@ help:
 	@echo "  clean        - Stop and remove everything"
 	@echo "  test         - Run all tests"
 	@echo "  test-unit    - Run unit tests only"
-	@echo "  test-e2e     - Run E2E tests only"
+	@echo "  test-integration    - Run integration tests only"
 	@echo "  status       - Show service status"
 	@echo "  health       - Check service health"
 
@@ -36,11 +36,11 @@ test:
 test-unit:
 	docker compose exec web python manage.py test api.tests.services
 
-test-e2e:
-	docker compose exec web python manage.py test api.tests.e2e
+test-integration:
+	docker compose exec web python manage.py test api.tests.integration
 
 status:
 	docker compose ps
 
 health:
-	curl -f http://localhost:8080/health || echo "Service is not healthy"
+	curl -f http://localhost:8080/health
