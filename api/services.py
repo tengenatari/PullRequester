@@ -3,8 +3,8 @@ from django.db import transaction
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils import timezone
 from .models import Team, User, PullRequest
-
-
+from django.db.models import Count
+from django.db import models
 class TeamService:
     """
     Сервис для управления командами и пользователями
@@ -200,3 +200,45 @@ class PullRequestService:
         pr.reviewers.add(new_reviewer)
 
         return pr, new_reviewer
+
+
+class StatsService:
+    """
+    Сервис для сбора статистики
+    """
+
+    @classmethod
+    def get_review_stats(cls):
+        """
+        Returns:
+            dict: Статистика по пользователям и PR
+        """
+        user_review_stats = (
+            User.objects
+            .filter(assigned_prs__isnull=False)
+            .annotate(
+                prs_reviewed=Count('assigned_prs'),
+                open_prs_reviewed=Count('assigned_prs', filter=models.Q(assigned_prs__status='OPEN')),
+                merged_prs_reviewed=Count('assigned_prs', filter=models.Q(assigned_prs__status='MERGED'))
+            )
+            .values('id', 'username', 'prs_reviewed', 'open_prs_reviewed', 'merged_prs_reviewed')
+            .order_by('-prs_reviewed')
+        )
+
+        pr_reviewer_stats = (
+            PullRequest.objects
+            .annotate(
+                reviewers_count=Count('reviewers'),
+                team_name=models.F('author__team__name')
+            )
+            .values(
+                'id', 'name', 'status', 'team_name',
+                'reviewers_count', 'created_at', 'merged_at'
+            )
+            .order_by('-created_at')
+        )
+
+        return {
+            'user_review_stats': list(user_review_stats),
+            'pr_reviewer_stats': list(pr_reviewer_stats)
+        }

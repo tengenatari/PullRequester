@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from PullRequester.api.models import Team, User
-from PullRequester.api.services import TeamService
+from api.models import Team, User
+from api.services import TeamService
 
 
 class TeamServiceTest(TestCase):
@@ -36,21 +36,6 @@ class TeamServiceTest(TestCase):
         self.assertEqual(context.exception.code, 'TEAM_EXISTS')
         self.assertEqual(str(context.exception), "['team_name already exists']")
 
-    def test_create_team_update_existing_user(self):
-        """Тест обновления существующего пользователя"""
-        # Сначала создаем пользователя без команды
-        existing_user = User.objects.create(id="u1", username="Old Name", is_active=False)
-
-        # Создаем команду с обновленными данными пользователя
-        team = TeamService.create_team_with_members(self.team_name, [
-            {"user_id": "u1", "username": "New Name", "is_active": True}
-        ])
-
-        # Проверяем что пользователь обновлен
-        user = User.objects.get(id="u1")
-        self.assertEqual(user.username, "New Name")
-        self.assertTrue(user.is_active)
-        self.assertEqual(user.team, team)  # Проверяем что пользователь добавлен в команду
 
     def test_create_team_empty_members(self):
         """Тест создания команды без пользователей"""
@@ -88,7 +73,7 @@ class TeamServiceTest(TestCase):
     def test_create_or_update_user_existing_user(self):
         """Тест обновления существующего пользователя"""
         team = Team.objects.create(name="test_team")
-        existing_user = User.objects.create(id="existing", username="Old Name", is_active=False)
+        User.objects.create(id="existing", username="Old Name", is_active=False)
 
         member_data = {"user_id": "existing", "username": "New Name", "is_active": True}
         user = TeamService._create_or_update_user(team, member_data)

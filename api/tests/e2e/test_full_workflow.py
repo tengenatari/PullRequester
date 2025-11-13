@@ -1,20 +1,18 @@
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from PullRequester.api.models import Team, User, PullRequest
 
 
 class FullWorkflowE2ETest(APITestCase):
     """
-    End-to-end тесты полных workflow через API
+    End-to-end
     """
 
     def test_complete_pr_workflow(self):
         """
         E2E тест: полный workflow создания команды, PR, переназначения и мержа
         """
-        # 1. Создаем команду через API
+        # Создаем команду через API
         team_data = {
             "team_name": "backend-team",
             "members": [
@@ -29,13 +27,13 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(response.data['team']['team_name'], 'backend-team')
         self.assertEqual(len(response.data['team']['members']), 4)
 
-        # 2. Проверяем что команда создана через GET API
+        # Проверяем что команда создана через GET API
         response = self.client.get(f"{reverse('api:team-get')}?team_name=backend-team")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['team_name'], 'backend-team')
         self.assertEqual(len(response.data['members']), 4)
 
-        # 3. Создаем PR через API
+        # Создаем PR через API
         pr_data = {
             "pull_request_id": "feature-auth",
             "pull_request_name": "Implement authentication",
@@ -52,7 +50,7 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(len(assigned_reviewers), 2)
         self.assertNotIn('dev1', assigned_reviewers)  # Автор не должен быть ревьювером
 
-        # 4. Получаем PR для одного из ревьюверов
+        # Получаем PR для одного из ревьюверов
         reviewer_id = assigned_reviewers[0]
         response = self.client.get(f"{reverse('api:user-get-review')}?user_id={reviewer_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -60,7 +58,7 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(len(response.data['pull_requests']), 1)
         self.assertEqual(response.data['pull_requests'][0]['pull_request_id'], 'feature-auth')
 
-        # 5. Переназначаем одного ревьювера через API
+        # Переназначаем одного ревьювера через API
         reassign_data = {
             "pull_request_id": "feature-auth",
             "old_user_id": reviewer_id
@@ -71,30 +69,30 @@ class FullWorkflowE2ETest(APITestCase):
         new_reviewer = response.data['replaced_by']
         self.assertNotEqual(new_reviewer, reviewer_id)
 
-        # 6. Проверяем что у старого ревьювера больше нет этого PR
+        # Проверяем что у старого ревьювера больше нет этого PR
         response = self.client.get(f"{reverse('api:user-get-review')}?user_id={reviewer_id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['pull_requests']), 0)
 
-        # 7. Проверяем что у нового ревьювера появился этот PR
+        # Проверяем что у нового ревьювера появился этот PR
         response = self.client.get(f"{reverse('api:user-get-review')}?user_id={new_reviewer}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['pull_requests']), 1)
         self.assertEqual(response.data['pull_requests'][0]['pull_request_id'], 'feature-auth')
 
-        # 8. Мержим PR через API
+        # Мержим PR через API
         merge_data = {"pull_request_id": "feature-auth"}
         response = self.client.post(reverse('api:pr-merge'), merge_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['pr']['status'], 'MERGED')
         self.assertIsNotNone(response.data['pr']['mergedAt'])
 
-        # 9. Пытаемся переназначить после мержа (должно быть запрещено)
+        # Пытаемся переназначить после мержа (должно быть запрещено)
         response = self.client.post(reverse('api:pr-reassign'), reassign_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertEqual(response.data['error']['code'], 'PR_MERGED')
 
-        # 10. Проверяем идемпотентность мержа (повторный мерж должен работать)
+        # Проверяем идемпотентность мержа
         response = self.client.post(reverse('api:pr-merge'), merge_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['pr']['status'], 'MERGED')
@@ -103,7 +101,7 @@ class FullWorkflowE2ETest(APITestCase):
         """
         E2E тест: workflow с деактивацией пользователя
         """
-        # 1. Создаем команду
+        # Создаем команду
         team_data = {
             "team_name": "qa-team",
             "members": [
@@ -115,13 +113,13 @@ class FullWorkflowE2ETest(APITestCase):
         response = self.client.post(reverse('api:team-add'), team_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # 2. Деактивируем пользователя через API
+        # Деактивируем пользователя через API
         deactivate_data = {"user_id": "qa2", "is_active": False}
         response = self.client.post(reverse('api:user-set-active'), deactivate_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data['user']['is_active'])
 
-        # 3. Создаем PR - деактивированный пользователь не должен быть назначен
+        # Создаем PR - деактивированный пользователь не должен быть назначен
         pr_data = {
             "pull_request_id": "test-fix",
             "pull_request_name": "Fix failing tests",
@@ -134,13 +132,13 @@ class FullWorkflowE2ETest(APITestCase):
         assigned_reviewers = response.data['pr']['assigned_reviewers']
         self.assertNotIn("qa2", assigned_reviewers)
 
-        # 4. Активируем пользователя обратно
+        # Активируем пользователя обратно
         activate_data = {"user_id": "qa2", "is_active": True}
         response = self.client.post(reverse('api:user-set-active'), activate_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['user']['is_active'])
 
-        # 5. Создаем еще один PR - теперь qa2 может быть назначен
+        # Создаем еще один PR - теперь qa2 может быть назначен
         pr_data_2 = {
             "pull_request_id": "new-feature",
             "pull_request_name": "Add new feature",
@@ -151,14 +149,12 @@ class FullWorkflowE2ETest(APITestCase):
 
         # qa2 теперь может быть в списке ревьюверов
         assigned_reviewers_2 = response.data['pr']['assigned_reviewers']
-        # Не проверяем конкретное наличие, так как выбор случайный
-        # Главное что нет ошибки и PR создан
 
     def test_error_scenarios_workflow(self):
         """
         E2E тест: различные сценарии ошибок
         """
-        # 1. Попытка создать дубликат команды
+
         team_data = {
             "team_name": "mobile-team",
             "members": [
@@ -215,7 +211,7 @@ class FullWorkflowE2ETest(APITestCase):
         """
         E2E тест: граничные случаи
         """
-        # 1. Создаем команду с минимальным количеством пользователей
+        # Создаем команду с минимальным количеством пользователей
         team_data = {
             "team_name": "small-team",
             "members": [
@@ -225,7 +221,7 @@ class FullWorkflowE2ETest(APITestCase):
         response = self.client.post(reverse('api:team-add'), team_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # 2. Создаем PR - не должно быть ревьюверов (только автор в команде)
+        # Создаем PR - не должно быть ревьюверов (только автор в команде)
         pr_data = {
             "pull_request_id": "solo-pr",
             "pull_request_name": "Solo PR",
@@ -235,7 +231,7 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(response.data['pr']['assigned_reviewers']), 0)
 
-        # 3. Создаем команду с неактивными пользователями
+        # Создаем команду с неактивными пользователями
         team_data_inactive = {
             "team_name": "inactive-team",
             "members": [
@@ -247,7 +243,7 @@ class FullWorkflowE2ETest(APITestCase):
         response = self.client.post(reverse('api:team-add'), team_data_inactive, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # 4. Создаем PR - должны быть назначены только активные пользователи
+        # Создаем PR - должны быть назначены только активные пользователи
         pr_data_inactive = {
             "pull_request_id": "inactive-team-pr",
             "pull_request_name": "PR for inactive team",
@@ -261,14 +257,14 @@ class FullWorkflowE2ETest(APITestCase):
         self.assertEqual(len(assigned_reviewers), 0)
 
 
-class PerformanceE2ETest(APITestCase):
+class MultiplePRE2ETest(APITestCase):
     """
-    E2E тесты производительности и нагрузки
+    E2E тесты нескольких PR
     """
 
     def test_multiple_teams_and_prs(self):
         """
-        E2E тест: создание нескольких команд и PR для проверки производительности
+        E2E тест: создание нескольких команд
         """
         # Создаем несколько команд
         teams_data = [
@@ -299,7 +295,7 @@ class PerformanceE2ETest(APITestCase):
                        for i in range(1, 4)  # 3 PR
                    ] + [
                        {"pull_request_id": f"pr-backend-{i}", "pull_request_name": f"Backend PR {i}", "author_id": "b1"}
-                       for i in range(1, 4)  # 3 PR
+                       for i in range(1, 4)
                    ]
 
         for pr_data in prs_data:
@@ -311,7 +307,6 @@ class PerformanceE2ETest(APITestCase):
         # Проверяем что можем получить все PR для пользователя
         response = self.client.get(f"{reverse('api:user-get-review')}?user_id=f2")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # f2 должен быть ревьювером в некоторых PR
 
 
 class DataConsistencyE2ETest(APITestCase):
@@ -323,7 +318,6 @@ class DataConsistencyE2ETest(APITestCase):
         """
         E2E тест: проверка целостности данных после серии операций
         """
-        # 1. Создаем команду
         team_data = {
             "team_name": "consistency-team",
             "members": [
@@ -344,8 +338,6 @@ class DataConsistencyE2ETest(APITestCase):
             }
             self.client.post(reverse('api:pr-create'), pr_data, format='json')
 
-        # 3. Проверяем целостность данных через разные endpoints
-        # Проверяем команду
         response = self.client.get(f"{reverse('api:team-get')}?team_name=consistency-team")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['members']), 3)
@@ -354,19 +346,15 @@ class DataConsistencyE2ETest(APITestCase):
         for user_id in ["c1", "c2", "c3"]:
             response = self.client.get(f"{reverse('api:user-get-review')}?user_id={user_id}")
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            # c1 - автор, не должен быть ревьювером
             if user_id == "c1":
                 self.assertEqual(len(response.data['pull_requests']), 0)
             else:
-                # c2 и c3 должны быть ревьюверами в некоторых PR
                 self.assertTrue(len(response.data['pull_requests']) >= 0)
 
-        # 4. Мержим один PR
         merge_data = {"pull_request_id": "consistency-pr-1"}
         response = self.client.post(reverse('api:pr-merge'), merge_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # 5. Проверяем что мерженый PR имеет правильный статус
         response = self.client.get(f"{reverse('api:user-get-review')}?user_id=c2")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for pr in response.data['pull_requests']:

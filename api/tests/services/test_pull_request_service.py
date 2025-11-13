@@ -2,17 +2,14 @@ from django.test import TestCase
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 from unittest.mock import patch
-import random
-from PullRequester.api.models import Team, User, PullRequest
-from PullRequester.api.services import PullRequestService
+from api.models import Team, User, PullRequest
+from api.services import PullRequestService
 
 
 class PullRequestServiceTest(TestCase):
     def setUp(self):
-        # Создаем команду
         self.team = Team.objects.create(name="backend")
 
-        # Создаем пользователей и назначаем им команду
         self.author = User.objects.create(id="author1", username="Author", is_active=True, team=self.team)
         self.reviewer1 = User.objects.create(id="reviewer1", username="Reviewer 1", is_active=True, team=self.team)
         self.reviewer2 = User.objects.create(id="reviewer2", username="Reviewer 2", is_active=True, team=self.team)
@@ -165,7 +162,7 @@ class PullRequestServiceTest(TestCase):
         self.assertEqual(context.exception.code, 'NO_CANDIDATE')
 
     def test_reassign_reviewer_reviewer_no_team(self):
-        """Тест переназначения когда у ревьювера нет команды"""
+        """Тест переназначения когда у ревьювера нет команды вдруг кто-то ручками полазил в базе"""
         reviewer_no_team = User.objects.create(id="no_team", username="No Team", is_active=True)
         # Не назначаем команду - team=None
         pr = PullRequest.objects.create(id="pr-1", name="Test PR", author=self.author)

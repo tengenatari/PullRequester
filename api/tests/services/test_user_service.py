@@ -1,7 +1,6 @@
 from django.test import TestCase
-from django.core.exceptions import ObjectDoesNotExist
-from PullRequester.api.models import Team, User, PullRequest
-from PullRequester.api.services import UserService
+from api.models import Team, User, PullRequest
+from api.services import UserService
 
 
 class UserServiceTest(TestCase):
@@ -9,7 +8,6 @@ class UserServiceTest(TestCase):
         # Создаем команду
         self.team = Team.objects.create(name="backend")
 
-        # Создаем пользователей и назначаем им команду
         self.user1 = User.objects.create(id="u1", username="Alice", is_active=True, team=self.team)
         self.user2 = User.objects.create(id="u2", username="Bob", is_active=True, team=self.team)
 

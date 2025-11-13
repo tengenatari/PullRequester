@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
-from ..services import PullRequestService
-from ..serializers import PullRequestSerializer
+from api.services import PullRequestService
+from api.serializers import PullRequestSerializer
 
 
 @api_view(['POST'])

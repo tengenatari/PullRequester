@@ -61,3 +61,25 @@ class PullRequestShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = PullRequest
         fields = ['pull_request_id', 'pull_request_name', 'author_id', 'status']
+
+class UserReviewStatsSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    username = serializers.CharField()
+    prs_reviewed = serializers.IntegerField()
+    open_prs_reviewed = serializers.IntegerField()
+    merged_prs_reviewed = serializers.IntegerField()
+
+
+class PRReviewerStatsSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    name = serializers.CharField()
+    status = serializers.CharField()
+    team_name = serializers.CharField(source='author.team.name')
+    reviewers_count = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
+    merged_at = serializers.DateTimeField(allow_null=True)
+
+
+class StatsSerializer(serializers.Serializer):
+    user_review_stats = UserReviewStatsSerializer(many=True)
+    pr_reviewer_stats = PRReviewerStatsSerializer(many=True)

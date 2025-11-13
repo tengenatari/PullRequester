@@ -2,7 +2,9 @@ services:
   web:
     build: .
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "
+             python manage.py makemigrations api
+             python manage.py migrate && 
              python manage.py runserver 0.0.0.0:8080"
     ports:
       - "8080:8080"
@@ -12,7 +14,7 @@ services:
       - DATABASE_URL=postgres://postgres:password@db:5432/pr_service
 
   db:
-    image: postgres:13
+    image: postgres:15
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
