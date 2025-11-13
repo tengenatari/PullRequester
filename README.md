@@ -1,15 +1,25 @@
 # Запуск описан в makefile
 
 build               - Build Docker images
+
 up                  - Start services
+
 down                - Stop services
+
 logs                - Show application logs
+
 clean               - Stop and remove everything
+
 test                - Run all tests
+
 test-unit           - Run unit tests only
+
 test-integration    - Run integration tests only
+
 status              - Show service status
+
 health              - Check service health
+
 coverage-test       - print coverage test
 
 # Вопросы, с которыми я столкнулся
