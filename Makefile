@@ -13,6 +13,7 @@ help:
 	@echo "  test-integration    - Run integration tests only"
 	@echo "  status       - Show service status"
 	@echo "  health       - Check service health"
+	@echo "  coverage-test       - print coverage test"
 
 build:
 	docker compose build
@@ -44,3 +45,6 @@ status:
 
 health:
 	curl -f http://localhost:8080/health
+
+coverage-test:
+	docker compose exec web pytest --ds=Pullrequester.settings --cov=api

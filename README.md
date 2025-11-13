@@ -1,15 +1,16 @@
 # Запуск описан в makefile
 
-build        - Build Docker images
-up           - Start services
-down         - Stop services
-logs         - Show application logs
-clean        - Stop and remove everything
-test         - Run all tests
-test-unit    - Run unit tests only
+build               - Build Docker images
+up                  - Start services
+down                - Stop services
+logs                - Show application logs
+clean               - Stop and remove everything
+test                - Run all tests
+test-unit           - Run unit tests only
 test-integration    - Run integration tests only
-status       - Show service status
-health       - Check service health
+status              - Show service status
+health              - Check service health
+coverage-test       - print coverage test
 
 # Вопросы, с которыми я столкнулся
 ## TeamMember 
@@ -49,7 +50,7 @@ health       - Check service health
 
 4. Результаты интеграционного тестирования ниже оно тоже сделано
 5. конфигурация линтера не сделана
-![img_2.png](img_2.png)
+![img_2.png](static/img_2.png)
 
 ### Нагрузочное Тестирование с заданным RPS (5 запросов секунду) 
 Для нагрузочного тестирования решил использовать Jmeter, так как ранее пользовался им а времени не очень много сейчас, чтобы пробовать что-то новое
@@ -61,5 +62,8 @@ RPS 5
 число итераций 100
 
 результаты нагрузочного тестирования
-![img.png](img.png)
-![img_1.png](img_1.png)
+![img.png](static/img.png)
+![img_1.png](static/img_1.png)
+
+## Покрытие кода
+![img_3.png](static/img_3.png)
