@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import team_views, user_views, health_views, pull_request_views
+from .views import team_views, user_views, health_views, pull_request_views, statistic_view
 
 app_name = 'api'
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path('pullRequest/merge', pull_request_views.pullrequest_merge, name='pr-merge'),
     path('pullRequest/reassign', pull_request_views.pullrequest_reassign, name='pr-reassign'),
     path('health', health_views.health_check, name='health-check'),
+    path('statistic', statistic_view.stats_overview, name='statistic-view'),
 ]
