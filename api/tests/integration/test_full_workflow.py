@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 class FullWorkflowIntegrationTest(APITestCase):
     """
-    End-to-end
+    Integration
     """
 
     def test_complete_pr_workflow(self):

@@ -47,4 +47,4 @@ health:
 	curl -f http://localhost:8080/health
 
 coverage-test:
-	docker compose exec web pytest --ds=Pullrequester.settings --cov=api
+	docker compose exec web pytest --ds=PullRequester.settings --cov=api

@@ -5,6 +5,8 @@ from django.utils import timezone
 from .models import Team, User, PullRequest
 from django.db.models import Count
 from django.db import models
+
+
 class TeamService:
     """
     Сервис для управления командами и пользователями
